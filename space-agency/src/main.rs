@@ -1,22 +1,20 @@
-use personnel::Candidate;
 use personnel::AstronautJob;
+use personnel::Candidate;
 
 fn main() {
     let mut candidates: Vec<Candidate> = Candidate::load_candidate_file();
-    candidates.sort_by(|a, b| get_candidate_score(a).cmp(&get_candidate_score(b)));
+    candidates.sort_by_key(get_candidate_score);
 }
 
 fn get_candidate_score(candidate: &Candidate) -> u32 {
     let job_score = get_job_score(candidate);
-    let candidate_score = ((job_score + candidate.health as u32) * candidate.age as u32) % 3928;
-    candidate_score
+    ((job_score + candidate.health as u32) * candidate.age as u32) % 3928
 }
 
 fn get_job_score(candidate: &Candidate) -> u32 {
     if let Some(secondary_job) = &candidate.secondary_job {
-        get_job_code(&candidate.primary_job) * get_job_code(&secondary_job) % 576
-    }
-    else {
+        get_job_code(&candidate.primary_job) * get_job_code(secondary_job) % 576
+    } else {
         get_job_code(&candidate.primary_job) * get_job_code(&candidate.primary_job) % 576
     }
 }
@@ -30,10 +28,9 @@ fn get_job_code(job: &AstronautJob) -> u32 {
         AstronautJob::Mechanic => 271,
         AstronautJob::Medic => 277,
         AstronautJob::RoverOp => 281,
-        AstronautJob::Scientist => 283
+        AstronautJob::Scientist => 283,
     }
 }
-
 
 #[test]
 fn test_get_job_code() {
@@ -53,9 +50,12 @@ fn test_get_job_score() {
         primary_job: AstronautJob::Biogeochemist,
         secondary_job: Some(AstronautJob::Biologist),
         age: 30,
-        health: 100
+        health: 100,
     };
-    assert_eq!(get_job_score(&candidate), get_job_code(&AstronautJob::Biogeochemist) * get_job_code(&AstronautJob::Biologist) % 576);
+    assert_eq!(
+        get_job_score(&candidate),
+        get_job_code(&AstronautJob::Biogeochemist) * get_job_code(&AstronautJob::Biologist) % 576
+    );
 }
 
 #[test]
@@ -64,8 +64,10 @@ fn test_get_candidate_score() {
         primary_job: AstronautJob::Biogeochemist,
         secondary_job: Some(AstronautJob::Biologist),
         age: 30,
-        health: 100
+        health: 100,
     };
-    assert_eq!(get_candidate_score(&candidate), ((get_job_score(&candidate) + 100) * 30) % 3928);
+    assert_eq!(
+        get_candidate_score(&candidate),
+        ((get_job_score(&candidate) + 100) * 30) % 3928
+    );
 }
-
